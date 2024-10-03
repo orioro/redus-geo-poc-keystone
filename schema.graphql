@@ -134,7 +134,7 @@ type MapFeature {
   id: ID!
   mapLayer: MapLayer
   name: String
-  geometry: Int
+  geometry: JSON
 }
 
 input MapFeatureWhereUniqueInput {
@@ -153,13 +153,12 @@ input MapFeatureWhereInput {
 input MapFeatureOrderByInput {
   id: OrderDirection
   name: OrderDirection
-  geometry: OrderDirection
 }
 
 input MapFeatureUpdateInput {
   mapLayer: MapLayerRelateToOneForUpdateInput
   name: String
-  geometry: Int
+  geometry: JSON
 }
 
 input MapFeatureUpdateArgs {
@@ -170,7 +169,7 @@ input MapFeatureUpdateArgs {
 input MapFeatureCreateInput {
   mapLayer: MapLayerRelateToOneForCreateInput
   name: String
-  geometry: Int
+  geometry: JSON
 }
 
 """

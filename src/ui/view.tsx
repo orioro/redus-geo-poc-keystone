@@ -1,65 +1,66 @@
-// view.tsx
+import React from 'react'
+import {
+  FieldContainer,
+  FieldDescription,
+  FieldLabel,
+} from '@keystone-ui/fields'
+import { CellLink, CellContainer } from '@keystone-6/core/admin-ui/components'
 
-import { FieldController, FieldControllerConfig } from '@keystone-6/core/types'
+import {
+  type CardValueComponent,
+  type CellComponent,
+  type FieldController,
+  type FieldControllerConfig,
+} from '@keystone-6/core/types'
 
-import { FieldContainer, FieldLabel, TextInput } from '@keystone-ui/fields'
-import { FieldProps } from '@keystone-6/core/types'
-
-
-import { CellLink, CellContainer } from '@keystone-6/core/admin-ui/components';
-import { CellComponent } from '@keystone-6/core/types';
-
-// view.tsx
-
-import { CardValueComponent } from '@keystone-6/core/types';
-
-export const controller = (
-  config: FieldControllerConfig,
-): FieldController<string, string> => {
-  return {
-    path: config.path,
-    label: config.label,
-    graphqlSelection: config.path,
-    defaultValue: '',
-    deserialize: (data) => {
-      const value = data[config.path]
-      return typeof value === 'number' ? value + '' : ''
-    },
-    serialize: (value) => ({
-      [config.path]: value === '' ? null : parseInt(value, 10),
-    }),
-  }
-}
+const ValueDisplay = ({ value }) => (
+  <div
+    style={{
+      maxHeight: '50vh',
+      overflow: 'auto',
+      backgroundColor: '#fafbfc',
+      border: '#e1e5e9',
+      borderRadius: '4px',
+      padding: '10px',
+    }}
+  >
+    <code style={{ whiteSpace: 'pre-wrap', fontSize: '.8rem' }}>
+      {JSON.stringify(value, null, '  ')}
+    </code>
+  </div>
+)
 
 export const Field = ({
   field,
+  forceValidation,
   value,
   onChange,
   autoFocus,
-}: FieldProps<typeof controller>) => (
-  <FieldContainer>
-    <FieldLabel htmlFor={field.path}>{field.label}</FieldLabel>
-    {onChange ? (
-      <TextInput
-        id={field.path}
-        autoFocus={autoFocus}
-        type="number"
-        onChange={(event) => {
-          onChange(event.target.value.replace(/[^\d-]/g, ''))
-        }}
-        value={value}
-      />
-    ) : (
-      value
-    )}
-  </FieldContainer>
-)
+}) => {
+  return (
+    <FieldContainer>
+      <FieldLabel htmlFor={field.path}>{field.label}</FieldLabel>
+      <FieldDescription id={`${field.path}-description`}>
+        {field.description}
+      </FieldDescription>
+      <ValueDisplay value={value} />
+    </FieldContainer>
+  )
+}
 
 export const Cell: CellComponent = ({ item, field, linkTo }) => {
-  let value = item[field.path] + '';
-  return linkTo ? <CellLink {...linkTo}>{value}</CellLink> : <CellContainer>{value}</CellContainer>;
-};
-Cell.supportsLinkTo = true;
+  const value = item[field.path]
+  return linkTo ? (
+    <CellLink {...linkTo}>
+      <ValueDisplay value={value} />
+    </CellLink>
+  ) : (
+    <CellContainer>
+      <ValueDisplay value={value} />
+    </CellContainer>
+  )
+}
+Cell.supportsLinkTo = true
 
 export const CardValue: CardValueComponent = ({ item, field }) => {
   return (
@@ -67,5 +68,21 @@ export const CardValue: CardValueComponent = ({ item, field }) => {
       <FieldLabel>{field.label}</FieldLabel>
       {item[field.path]}
     </FieldContainer>
-  );
-};
+  )
+}
+
+export const controller = (
+  config: FieldControllerConfig<{
+    graphqlSelection: string
+  }>,
+): FieldController<string | null, string> => {
+  return {
+    path: config.path,
+    label: config.label,
+    description: config.description,
+    graphqlSelection: `${config.path}${config.fieldMeta?.graphqlSelection || ''}`,
+    defaultValue: null,
+    deserialize: (data) => data[config.path],
+    serialize: (value) => ({ [config.path]: value }),
+  }
+}
