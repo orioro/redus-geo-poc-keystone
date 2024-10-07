@@ -25,12 +25,13 @@ model MapLayer {
 }
 
 model MapFeature {
-  id                String                   @id @default(uuid()) @postgresql.Uuid
-  mapLayer          MapLayer?                @relation("MapFeature_mapLayer", fields: [mapLayerId], references: [id])
-  mapLayerId        String?                  @map("mapLayer") @postgresql.Uuid
-  name              String                   @default("")
-  geometry_geometry Unsupported("geometry")?
-  geometry_json     Json?
+  id                String                                   @id @default(uuid()) @postgresql.Uuid
+  mapLayer          MapLayer?                                @relation("MapFeature_mapLayer", fields: [mapLayerId], references: [id])
+  mapLayerId        String?                                  @map("mapLayer") @postgresql.Uuid
+  name              String                                   @default("")
+  geometry_geometry Unsupported("GEOMETRY(Geometry, 4326)")?
+  geometry_geoJson  Json?
 
   @@index([mapLayerId])
+  @@index([geometry_geometry])
 }
