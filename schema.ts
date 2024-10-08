@@ -5,9 +5,10 @@
 // If you want to learn more about how lists are configured, please read
 // - https://keystonejs.com/docs/config/lists
 
-import { list } from '@keystone-6/core'
+import { graphql, list } from '@keystone-6/core'
 import { allowAll } from '@keystone-6/core/access'
 import { geometry } from './src/geometry'
+import { virtualProperties } from './src/virtualProperties'
 
 // see https://keystonejs.com/docs/fields/overview for the full list of fields
 //   this is a few common fields for an example
@@ -18,6 +19,8 @@ import {
   timestamp,
   select,
   json,
+  float,
+  virtual,
 } from '@keystone-6/core/fields'
 
 // the document field is a more complicated field, so it has it's own package
@@ -55,6 +58,71 @@ export const lists = {
       }),
       name: text(),
       geometry: geometry(),
+      properties_raw: relationship({
+        ref: 'MapFeatureProperty.mapFeature',
+        many: true,
+      }),
+
+      properties: virtualProperties({
+        propertiesListKey: 'MapFeatureProperty',
+        propertyOwnerReferencePropertyKey: 'mapFeature',
+      }),
+
+      // properties_backup: virtual({
+      //   field: graphql.field({
+      //     type: graphql.JSON,
+      //     resolve: async (item, arg, context) => {
+      //       const properties = await context.query.MapFeatureProperty.findMany({
+      //         where: {
+      //           mapFeature: {
+      //             id: {
+      //               equals: item.mapFeatureId,
+      //             },
+      //           },
+      //         },
+      //         query: `
+      //           key
+      //           value_text
+      //         `,
+      //       })
+
+      //       return Object.fromEntries(
+      //         properties.map((prop) => [prop.key, prop.value_text]),
+      //       )
+      //     },
+      //   }),
+      // }),
+    },
+  }),
+
+  MapFeatureProperty: list({
+    access: allowAll,
+    fields: {
+      mapFeature: relationship({
+        ref: 'MapFeature.properties_raw',
+        many: false,
+      }),
+      key: text({
+        validation: {
+          isRequired: true,
+        },
+      }),
+
+      type: select({
+        options: [
+          {
+            label: 'Text',
+            value: 'text',
+          },
+          {
+            label: 'Number',
+            value: 'number',
+          },
+        ],
+      }),
+
+      value_text: text(),
+      value_number: float(),
     },
   }),
 

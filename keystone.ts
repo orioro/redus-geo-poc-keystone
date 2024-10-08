@@ -15,6 +15,7 @@ import { lists } from './schema'
 // authentication is configured separately here too, but you might move this elsewhere
 // when you write your list-level access control functions, as they typically rely on session data
 import { withAuth, session } from './auth'
+import { geometryExtendGraphqlSchema } from './src/geometryExtendGraphqlSchema'
 
 // const { DATABASE_URL, DATABASE_LOGGING } = parseEnv({
 //   DATABASE_URL: 'env:DATABASE_URL',
@@ -43,5 +44,11 @@ export default config({
     },
   },
   lists,
+  graphql: {
+    extendGraphqlSchema: geometryExtendGraphqlSchema({
+      listKey: 'MapFeature',
+      geometryFieldKey: 'geometry',
+    }),
+  },
   // session,
 })

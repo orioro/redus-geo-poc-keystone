@@ -23,6 +23,14 @@ const VALID_GEOMETRY_TYPES = [
   'GeometryCollection',
 ]
 
+const DB_KEY_RE = /[_a-zA-Z0-9]+/
+
+function validateDbKey(str) {
+  if (!DB_KEY_RE.test(str)) {
+    throw new Error(`Invalid db key: ${str}`)
+  }
+}
+
 export const geometry =
   ({
     acceptGeometryTypes = VALID_GEOMETRY_TYPES,
@@ -30,6 +38,12 @@ export const geometry =
     ...config
   } = {}) =>
   (meta) => {
+    //
+    // Validate listKey and fieldKey
+    //
+    validateDbKey(meta.listKey)
+    validateDbKey(meta.fieldKey)
+
     const DB_KEYS = dbFieldKeys(meta.fieldKey)
 
     if (
@@ -49,6 +63,9 @@ export const geometry =
     // Calls to Prisma.raw should be kept here as well, so as to
     // avoid any errors that might allow wrapping unsafe content
     // in Prisma.raw(input)
+    //
+    // See discussion at:
+    // https://github.com/prisma/prisma/issues/9765#issuecomment-1020391857
     //
     const SQL_SAFE = {
       TABLE_KEY: Prisma.raw(`"${meta.listKey}"`),
@@ -133,7 +150,7 @@ export const geometry =
           if (operation === 'update' || operation === 'create') {
             const geoJsonInput = item[DB_KEYS.geoJson]
 
-            if (geoJsonInput === null) {
+            if (geoJsonInput === null || typeof geoJsonInput === 'undefined') {
               await context.prisma.$executeRaw`
                 UPDATE ${SQL_SAFE.TABLE_KEY}
                 SET ${SQL_SAFE.GEOMETRY_COLUMN_KEY} = null
@@ -170,7 +187,5 @@ export const geometry =
   }
 
 export function extendGraphqlGeometryQuery({ listKey, fieldKeys }) {
-  return function (schema) {
-    
-  }
+  return function (schema) {}
 }

@@ -135,6 +135,9 @@ type MapFeature {
   mapLayer: MapLayer
   name: String
   geometry: JSON
+  properties_raw(where: MapFeaturePropertyWhereInput! = {}, orderBy: [MapFeaturePropertyOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: MapFeaturePropertyWhereUniqueInput): [MapFeatureProperty!]
+  properties_rawCount(where: MapFeaturePropertyWhereInput! = {}): Int
+  properties: JSON
 }
 
 input MapFeatureWhereUniqueInput {
@@ -148,6 +151,13 @@ input MapFeatureWhereInput {
   id: IDFilter
   mapLayer: MapLayerWhereInput
   name: StringFilter
+  properties_raw: MapFeaturePropertyManyRelationFilter
+}
+
+input MapFeaturePropertyManyRelationFilter {
+  every: MapFeaturePropertyWhereInput
+  some: MapFeaturePropertyWhereInput
+  none: MapFeaturePropertyWhereInput
 }
 
 input MapFeatureOrderByInput {
@@ -159,6 +169,15 @@ input MapFeatureUpdateInput {
   mapLayer: MapLayerRelateToOneForUpdateInput
   name: String
   geometry: JSON
+  properties_raw: MapFeaturePropertyRelateToManyForUpdateInput
+  properties: JSON
+}
+
+input MapFeaturePropertyRelateToManyForUpdateInput {
+  disconnect: [MapFeaturePropertyWhereUniqueInput!]
+  set: [MapFeaturePropertyWhereUniqueInput!]
+  create: [MapFeaturePropertyCreateInput!]
+  connect: [MapFeaturePropertyWhereUniqueInput!]
 }
 
 input MapFeatureUpdateArgs {
@@ -170,6 +189,104 @@ input MapFeatureCreateInput {
   mapLayer: MapLayerRelateToOneForCreateInput
   name: String
   geometry: JSON
+  properties_raw: MapFeaturePropertyRelateToManyForCreateInput
+  properties: JSON
+}
+
+input MapFeaturePropertyRelateToManyForCreateInput {
+  create: [MapFeaturePropertyCreateInput!]
+  connect: [MapFeaturePropertyWhereUniqueInput!]
+}
+
+type MapFeatureProperty {
+  id: ID!
+  mapFeature: MapFeature
+  key: String
+  type: String
+  value_text: String
+  value_number: Float
+}
+
+input MapFeaturePropertyWhereUniqueInput {
+  id: ID
+}
+
+input MapFeaturePropertyWhereInput {
+  AND: [MapFeaturePropertyWhereInput!]
+  OR: [MapFeaturePropertyWhereInput!]
+  NOT: [MapFeaturePropertyWhereInput!]
+  id: IDFilter
+  mapFeature: MapFeatureWhereInput
+  key: StringFilter
+  type: StringNullableFilter
+  value_text: StringFilter
+  value_number: FloatNullableFilter
+}
+
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  mode: QueryMode
+  not: StringNullableFilter
+}
+
+input FloatNullableFilter {
+  equals: Float
+  in: [Float!]
+  notIn: [Float!]
+  lt: Float
+  lte: Float
+  gt: Float
+  gte: Float
+  not: FloatNullableFilter
+}
+
+input MapFeaturePropertyOrderByInput {
+  id: OrderDirection
+  key: OrderDirection
+  type: OrderDirection
+  value_text: OrderDirection
+  value_number: OrderDirection
+}
+
+input MapFeaturePropertyUpdateInput {
+  mapFeature: MapFeatureRelateToOneForUpdateInput
+  key: String
+  type: String
+  value_text: String
+  value_number: Float
+}
+
+input MapFeatureRelateToOneForUpdateInput {
+  create: MapFeatureCreateInput
+  connect: MapFeatureWhereUniqueInput
+  disconnect: Boolean
+}
+
+input MapFeaturePropertyUpdateArgs {
+  where: MapFeaturePropertyWhereUniqueInput!
+  data: MapFeaturePropertyUpdateInput!
+}
+
+input MapFeaturePropertyCreateInput {
+  mapFeature: MapFeatureRelateToOneForCreateInput
+  key: String
+  type: String
+  value_text: String
+  value_number: Float
+}
+
+input MapFeatureRelateToOneForCreateInput {
+  create: MapFeatureCreateInput
+  connect: MapFeatureWhereUniqueInput
 }
 
 """
@@ -190,6 +307,12 @@ type Mutation {
   updateMapFeatures(data: [MapFeatureUpdateArgs!]!): [MapFeature]
   deleteMapFeature(where: MapFeatureWhereUniqueInput!): MapFeature
   deleteMapFeatures(where: [MapFeatureWhereUniqueInput!]!): [MapFeature]
+  createMapFeatureProperty(data: MapFeaturePropertyCreateInput!): MapFeatureProperty
+  createMapFeatureProperties(data: [MapFeaturePropertyCreateInput!]!): [MapFeatureProperty]
+  updateMapFeatureProperty(where: MapFeaturePropertyWhereUniqueInput!, data: MapFeaturePropertyUpdateInput!): MapFeatureProperty
+  updateMapFeatureProperties(data: [MapFeaturePropertyUpdateArgs!]!): [MapFeatureProperty]
+  deleteMapFeatureProperty(where: MapFeaturePropertyWhereUniqueInput!): MapFeatureProperty
+  deleteMapFeatureProperties(where: [MapFeaturePropertyWhereUniqueInput!]!): [MapFeatureProperty]
 }
 
 type Query {
@@ -199,7 +322,13 @@ type Query {
   mapFeature(where: MapFeatureWhereUniqueInput!): MapFeature
   mapFeatures(where: MapFeatureWhereInput! = {}, orderBy: [MapFeatureOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: MapFeatureWhereUniqueInput): [MapFeature!]
   mapFeaturesCount(where: MapFeatureWhereInput! = {}): Int
+  mapFeatureProperty(where: MapFeaturePropertyWhereUniqueInput!): MapFeatureProperty
+  mapFeatureProperties(where: MapFeaturePropertyWhereInput! = {}, orderBy: [MapFeaturePropertyOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: MapFeaturePropertyWhereUniqueInput): [MapFeatureProperty!]
+  mapFeaturePropertiesCount(where: MapFeaturePropertyWhereInput! = {}): Int
   keystone: KeystoneMeta!
+
+  """ stats(id: ID!): Statistics """
+  geometryQuery(containerGeometry: JSON!): JSON
 }
 
 type KeystoneMeta {

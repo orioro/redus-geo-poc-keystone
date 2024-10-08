@@ -31,7 +31,21 @@ model MapFeature {
   name              String                                   @default("")
   geometry_geometry Unsupported("GEOMETRY(Geometry, 4326)")?
   geometry_geoJson  Json?
+  properties_raw    MapFeatureProperty[]                     @relation("MapFeatureProperty_mapFeature")
+  properties        Json?
 
   @@index([mapLayerId])
   @@index([geometry_geometry])
+}
+
+model MapFeatureProperty {
+  id           String      @id @default(uuid()) @postgresql.Uuid
+  mapFeature   MapFeature? @relation("MapFeatureProperty_mapFeature", fields: [mapFeatureId], references: [id])
+  mapFeatureId String?     @map("mapFeature") @postgresql.Uuid
+  key          String      @default("")
+  type         String?
+  value_text   String      @default("")
+  value_number Float?
+
+  @@index([mapFeatureId])
 }

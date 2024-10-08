@@ -8,6 +8,7 @@
     "build": "keystone build"
   },
   "dependencies": {
+    "@graphql-tools/schema": "^10.0.6",
     "@keystone-6/auth": "^8.0.0",
     "@keystone-6/core": "^6.0.0",
     "@keystone-6/fields-document": "^9.0.0",
