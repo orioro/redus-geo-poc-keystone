@@ -6,26 +6,6 @@ import booleanValid from '@turf/boolean-valid'
 
 import Prisma from '@prisma/client'
 
-// import { allowAll } from '@keystone-6/core/access'
-// import { select, relationship, text, timestamp } from '@keystone-6/core/fields'
-
-// const q = `
-//       type Query {
-//         """ Return all posts for a user from the last <seconds> seconds """
-//         """ recentPosts(id: ID!, seconds: Int! = 600): [Post] """
-
-//         """ Compute statistics for a user """
-//         """ stats(id: ID!): Statistics """
-//       }
-
-//       """ A custom type to represent statistics for a user """
-//       type Statistics {
-//         draft: Int
-//         published: Int
-//         latest: Post
-//       }
-//     `
-
 function isValidGeoJson(input: any): boolean {
   return booleanValid(input)
 }
@@ -54,6 +34,10 @@ export function geometryExtendGraphqlSchema({
       type Query {
         """ stats(id: ID!): Statistics """
         geometryQuery(containerGeometry: JSON!): JSON
+        geometrySum(
+          containerGeometry: JSON!
+          propertyKey: String!
+        ):JSON
       }
     `,
       resolvers: {
@@ -71,6 +55,7 @@ export function geometryExtendGraphqlSchema({
             const results = await context.prisma.$queryRaw`
               SELECT
                 id,
+                properties,
                 ${SQL_SAFE.GEOJSON_COLUMN_KEY}
               FROM ${SQL_SAFE.TABLE_KEY}
               WHERE
@@ -85,8 +70,63 @@ export function geometryExtendGraphqlSchema({
                 )
             `
 
-            return results
+            return {
+              length: results.length,
+              results,
+            }
           },
+          geometrySum: async (
+            root,
+            { containerGeometry, propertyKey },
+            context,
+          ) => {
+            //
+            // 1. Validate containerGeometry
+            //
+            if (!isValidGeoJson(containerGeometry)) {
+              throw new Error(
+                `Invalid containerGeometry ${JSON.stringify(containerGeometry)}`,
+              )
+            }
+
+            const results = await context.prisma.$queryRaw`
+              SELECT
+                SUM(
+                  COALESCE(
+                    (${SQL_SAFE.TABLE_KEY}.properties->> ${propertyKey})::NUMERIC,
+                    0
+                  )
+                  *
+                  ST_Area(
+                    ST_Intersection(
+                      ${SQL_SAFE.TABLE_KEY}.${SQL_SAFE.GEOMETRY_COLUMN_KEY},
+                      ST_SetSRID(
+                        ST_GeomFromGeoJSON(
+                          ${JSON.stringify(containerGeometry)}
+                        ),
+                        ${srid}::INTEGER
+                      )
+                    )
+                  ) 
+                  /
+                  ST_Area(${SQL_SAFE.TABLE_KEY}.${SQL_SAFE.GEOMETRY_COLUMN_KEY})
+                )
+              FROM ${SQL_SAFE.TABLE_KEY}
+              WHERE
+                ST_Intersects(
+                  ST_SetSRID(
+                    ST_GeomFromGeoJSON(
+                      ${JSON.stringify(containerGeometry)}
+                    ),
+                    ${srid}::INTEGER
+                  ),
+                  ${SQL_SAFE.GEOMETRY_COLUMN_KEY}
+                )
+            `
+
+            return results[0]
+          },
+
           // recentPosts: (root, { id, seconds }, context: Context) => {
           //   const cutoff = new Date(Date.now() - seconds * 1000)
 

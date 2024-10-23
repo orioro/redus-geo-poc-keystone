@@ -32,6 +32,15 @@ import { geometryExtendGraphqlSchema } from './src/geometryExtendGraphqlSchema'
 // }
 
 export default config({
+  server: {
+    cors: {
+      origin: ['http://localhost:6006'],
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+      credentials: true,
+    },
+  },
   db: {
     // we're using sqlite for the fastest startup experience
     //   for more information on what database might be appropriate for you
@@ -42,11 +51,22 @@ export default config({
     idField: {
       kind: 'uuid',
     },
+    extendPrismaSchema: (schema) => {
+      return schema.replace(
+        /(generator [^}]+)}/g,
+        [
+          '$1',
+          '  previewFeatures = ["postgresqlExtensions"]',
+          '  extensions = [postgis(version: "3.5")]',
+          '}',
+        ].join('\n'),
+      )
+    },
   },
   lists,
   graphql: {
     extendGraphqlSchema: geometryExtendGraphqlSchema({
-      listKey: 'MapFeature',
+      listKey: 'Json_MapFeature',
       geometryFieldKey: 'geometry',
     }),
   },

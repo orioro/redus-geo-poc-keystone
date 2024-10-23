@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "keystone dev",
     "start": "keystone start",
-    "build": "keystone build"
+    "build": "keystone build",
+    "build:mod": "rollup --config mod/rollup.config.js --bundleConfigAsCjs"
   },
   "dependencies": {
     "@graphql-tools/schema": "^10.0.6",
@@ -13,10 +14,20 @@
     "@keystone-6/core": "^6.0.0",
     "@keystone-6/fields-document": "^9.0.0",
     "@turf/boolean-valid": "^7.1.0",
+    "bytes": "^3.1.2",
     "dotenv": "^16.4.5",
+    "stream-chain": "^3.3.2",
+    "stream-json": "^1.8.0",
+    "stream-to-promise": "^3.0.0",
     "typescript": "^5.5.0"
   },
   "devDependencies": {
-    "prettier": "^3.3.3"
+    "@babel/core": "^7.23.7",
+    "@babel/preset-env": "^7.23.7",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "prettier": "^3.3.3",
+    "rollup": "^4.9.6"
   }
 }

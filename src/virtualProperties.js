@@ -15,6 +15,7 @@ export function virtualProperties({
       input: {
         create: { arg: graphql.arg({ type: graphql.JSON }) },
         update: { arg: graphql.arg({ type: graphql.JSON }) },
+        // where: { arg: graphql.arg({ type: graphql.JSON }), resolve },
       },
       hooks: {
         afterOperation: async ({ operation, item, context }) => {

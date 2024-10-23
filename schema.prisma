@@ -9,43 +9,74 @@ datasource postgresql {
 
 generator client {
   provider = "prisma-client-js"
+
+  previewFeatures = ["postgresqlExtensions"]
+  extensions      = [postgis(version: "3.5")]
 }
 
-model MapLayer {
-  id                           String       @id @default(uuid()) @postgresql.Uuid
-  name                         String       @default("")
-  description                  Json?
-  featurePropertySchema        Json?
-  parentMapLayer               MapLayer?    @relation("MapLayer_parentMapLayer", fields: [parentMapLayerId], references: [id])
-  parentMapLayerId             String?      @map("parentMapLayer") @postgresql.Uuid
-  features                     MapFeature[] @relation("MapFeature_mapLayer")
-  from_MapLayer_parentMapLayer MapLayer[]   @relation("MapLayer_parentMapLayer")
+model KeyValue_MapLayer {
+  id                                    String                @id @default(uuid()) @postgresql.Uuid
+  name                                  String                @default("")
+  description                           Json?
+  featurePropertySchema                 Json?
+  parentMapLayer                        KeyValue_MapLayer?    @relation("KeyValue_MapLayer_parentMapLayer", fields: [parentMapLayerId], references: [id])
+  parentMapLayerId                      String?               @map("parentMapLayer") @postgresql.Uuid
+  features                              KeyValue_MapFeature[] @relation("KeyValue_MapFeature_mapLayer")
+  from_KeyValue_MapLayer_parentMapLayer KeyValue_MapLayer[]   @relation("KeyValue_MapLayer_parentMapLayer")
 
   @@index([parentMapLayerId])
 }
 
-model MapFeature {
+model KeyValue_MapFeature {
+  id                                          String                                   @id @default(uuid()) @postgresql.Uuid
+  mapLayer                                    KeyValue_MapLayer?                       @relation("KeyValue_MapFeature_mapLayer", fields: [mapLayerId], references: [id])
+  mapLayerId                                  String?                                  @map("mapLayer") @postgresql.Uuid
+  name                                        String                                   @default("")
+  geometry_geometry                           Unsupported("GEOMETRY(Geometry, 4326)")?
+  geometry_geoJson                            Json?
+  properties                                  Json?
+  from_KeyValue_MapFeatureProperty_mapFeature KeyValue_MapFeatureProperty[]            @relation("KeyValue_MapFeatureProperty_mapFeature")
+
+  @@index([mapLayerId])
+  @@index([geometry_geometry], type: Gist)
+}
+
+model KeyValue_MapFeatureProperty {
+  id           String               @id @default(uuid()) @postgresql.Uuid
+  mapFeature   KeyValue_MapFeature? @relation("KeyValue_MapFeatureProperty_mapFeature", fields: [mapFeatureId], references: [id])
+  mapFeatureId String?              @map("mapFeature") @postgresql.Uuid
+  key          String               @default("")
+  type         String?
+  value_text   String               @default("")
+  value_number Float?
+
+  @@index([mapFeatureId])
+}
+
+model Json_MapLayer {
+  id                                String            @id @default(uuid()) @postgresql.Uuid
+  name                              String            @default("")
+  description                       Json?
+  featurePropertySchema             Json?
+  parentMapLayer                    Json_MapLayer?    @relation("Json_MapLayer_parentMapLayer", fields: [parentMapLayerId], references: [id])
+  parentMapLayerId                  String?           @map("parentMapLayer") @postgresql.Uuid
+  features                          Json_MapFeature[] @relation("Json_MapFeature_mapLayer")
+  from_Json_MapLayer_parentMapLayer Json_MapLayer[]   @relation("Json_MapLayer_parentMapLayer")
+
+  @@index([parentMapLayerId])
+}
+
+model Json_MapFeature {
   id                String                                   @id @default(uuid()) @postgresql.Uuid
-  mapLayer          MapLayer?                                @relation("MapFeature_mapLayer", fields: [mapLayerId], references: [id])
+  mapLayer          Json_MapLayer?                           @relation("Json_MapFeature_mapLayer", fields: [mapLayerId], references: [id])
   mapLayerId        String?                                  @map("mapLayer") @postgresql.Uuid
   name              String                                   @default("")
   geometry_geometry Unsupported("GEOMETRY(Geometry, 4326)")?
   geometry_geoJson  Json?
-  properties_raw    MapFeatureProperty[]                     @relation("MapFeatureProperty_mapFeature")
   properties        Json?
 
   @@index([mapLayerId])
-  @@index([geometry_geometry])
-}
-
-model MapFeatureProperty {
-  id           String      @id @default(uuid()) @postgresql.Uuid
-  mapFeature   MapFeature? @relation("MapFeatureProperty_mapFeature", fields: [mapFeatureId], references: [id])
-  mapFeatureId String?     @map("mapFeature") @postgresql.Uuid
-  key          String      @default("")
-  type         String?
-  value_text   String      @default("")
-  value_number Float?
-
-  @@index([mapFeatureId])
+  @@index([name])
+  @@index([geometry_geometry], type: Gist)
+  @@index([properties], type: Gin)
 }

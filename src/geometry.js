@@ -3,6 +3,7 @@ import { graphql } from '@keystone-6/core'
 import booleanValid from '@turf/boolean-valid'
 
 import Prisma from '@prisma/client'
+import bytes from 'bytes'
 
 function dbFieldKeys(fieldKey) {
   return {
@@ -78,6 +79,10 @@ export const geometry =
 
     return fieldType({
       kind: 'multi',
+      extendPrismaSchema: (schema) => {
+        // return schema
+        return schema.replace(/(\@\@index\([^)]+)\)/, '$1, type: Gist)')
+      },
       fields: {
         geometry: {
           kind: 'scalar',
@@ -93,6 +98,7 @@ export const geometry =
           // See:
           // https://github.com/prisma/prisma/discussions/6677
           // https://github.com/prisma/prisma/issues/7515
+          // https://github.com/prisma/prisma/issues/12914
           //
           index: 'index',
         },
@@ -141,13 +147,15 @@ export const geometry =
             // Verify if the provided geoJson is valid and adheres to provided list
             // of accept types
             //
-            if (!isValidGeoJson(geoJsonInput)) {
-              addValidationError('Invalid GeoJSON')
-            }
+            // if (!isValidGeoJson(geoJsonInput)) {
+            //   addValidationError('Invalid GeoJSON')
+            // }
           }
         },
         afterOperation: async ({ operation, item, context }) => {
           if (operation === 'update' || operation === 'create') {
+            // const _start = performance.now()
+
             const geoJsonInput = item[DB_KEYS.geoJson]
 
             if (geoJsonInput === null || typeof geoJsonInput === 'undefined') {
@@ -157,9 +165,9 @@ export const geometry =
                 WHERE id = ${item.id}::uuid
               `
             } else {
-              if (!isValidGeoJson(geoJsonInput)) {
-                throw new Error('Invalid GeoJSON')
-              }
+              // if (!isValidGeoJson(geoJsonInput)) {
+              //   throw new Error('Invalid GeoJSON')
+              // }
 
               await context.prisma.$executeRaw`
                 UPDATE ${SQL_SAFE.TABLE_KEY}
@@ -173,6 +181,18 @@ export const geometry =
                 WHERE id = ${item.id}::UUID
               `
             }
+
+            // const _end = performance.now()
+
+            // // if (_end - _start > 500) {
+            // const _size = bytes.format(
+            //   Buffer.byteLength(JSON.stringify(geoJsonInput), 'utf8'),
+            // )
+
+            // console.log(
+            //   `geometry: ${Math.round(_end - _start)} ms - size ${_size}`,
+            // )
+            // // }
           }
         },
       },
