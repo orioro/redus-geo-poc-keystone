@@ -83,11 +83,11 @@ export function geometryExtendGraphqlSchema({
             //
             // 1. Validate containerGeometry
             //
-            if (!isValidGeoJson(containerGeometry)) {
-              throw new Error(
-                `Invalid containerGeometry ${JSON.stringify(containerGeometry)}`,
-              )
-            }
+            // if (!isValidGeoJson(containerGeometry)) {
+            //   throw new Error(
+            //     `Invalid containerGeometry ${JSON.stringify(containerGeometry)}`,
+            //   )
+            // }
 
             const results = await context.prisma.$queryRaw`
               SELECT

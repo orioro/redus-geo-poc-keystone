@@ -15,6 +15,7 @@
     "@keystone-6/fields-document": "^9.0.0",
     "@turf/boolean-valid": "^7.1.0",
     "bytes": "^3.1.2",
+    "csv": "^6.3.10",
     "dotenv": "^16.4.5",
     "stream-chain": "^3.3.2",
     "stream-json": "^1.8.0",

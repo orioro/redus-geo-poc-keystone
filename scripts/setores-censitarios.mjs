@@ -45,10 +45,10 @@ const pipeline = chain([
   async (data) => {
     const { key, value } = data
 
-    if (key < 143170) {
-      console.log(`skip: ${key}`)
-      return
-    }
+    // if (key < 143170) {
+    //   console.log(`skip: ${key}`)
+    //   return
+    // }
 
     try {
       const _start = performance.now()
